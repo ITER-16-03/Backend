@@ -18,9 +18,4 @@ app.use(cors({
 
 app.use("/api/auth", authRoutes);
 
-/* ================= TEST ROUTE ================= */
-
-app.get("/", (req, res) => {
-  res.send("Auth API is running...");
-});
 export default app;

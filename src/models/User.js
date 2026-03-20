@@ -16,13 +16,6 @@ const userSchema = new mongoose.Schema({
   diseaseHistory: [],
   yieldHistory: [],
 
-
-  // // OTP fields
-  // otp: String,
-  // otpExpiry: Date,
-  // otpCooldown: Date
-
-
 }, { timestamps: true });
 
 export default mongoose.model("User", userSchema);
