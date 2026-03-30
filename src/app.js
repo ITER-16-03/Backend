@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes.js";
+import crop_predictRoutes from "./routes/crop_predictRoutes.js";
 
 dotenv.config();
 
@@ -17,5 +18,6 @@ app.use(cors({
 }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/crop", crop_predictRoutes);
 
 export default app;
