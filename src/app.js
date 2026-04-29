@@ -2,14 +2,10 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-
 import authRoutes from "./routes/authRoutes.js";
 import crop_predictRoutes from "./routes/crop_predictRoutes.js";
 import diseaseRoutes from "./routes/diseaseRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
-// ROUTES
-import authRoutes from "./routes/authRoutes.js";
-import crop_predictRoutes from "./routes/crop_predictRoutes.js";
 import alertRoutes from "./routes/alertRoutes.js";
 
 dotenv.config();
