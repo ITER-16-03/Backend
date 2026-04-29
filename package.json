@@ -20,16 +20,20 @@
   },
   "homepage": "https://github.com/ITER-16-03/Backend#readme",
   "dependencies": {
-    "axios": "^1.14.0",
+    "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "form-data": "^4.0.5",
+    "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.3.1",
+    "multer": "^2.1.1",
     "nodemailer": "^8.0.3",
-    "otp-generator": "^4.0.1"
+    "otp-generator": "^4.0.1",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
