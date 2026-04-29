@@ -3,6 +3,10 @@ import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 
+import authRoutes from "./routes/authRoutes.js";
+import crop_predictRoutes from "./routes/crop_predictRoutes.js";
+import diseaseRoutes from "./routes/diseaseRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 // ROUTES
 import authRoutes from "./routes/authRoutes.js";
 import crop_predictRoutes from "./routes/crop_predictRoutes.js";
@@ -12,16 +16,28 @@ dotenv.config();
 
 const app = express();
 
+// 🔥 MIDDLEWARE
 /* ================= MIDDLEWARE ================= */
 
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(cors({
-  origin: "http://localhost:5173", // frontend URL
-  credentials: true
-}));
+// 🔥 CORS (more flexible)
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"], // allow both
+    credentials: true,
+  })
+);
 
+// 🟢 IMPORTANT: serve uploaded images
+app.use("/uploads", express.static("uploads"));
+
+// 🔥 ROUTES
+app.use("/api/auth", authRoutes);
+app.use("/api/crop", crop_predictRoutes);
+app.use("/api/disease", diseaseRoutes);
+app.use("/api/user", userRoutes);
 /* ================= ROUTES ================= */
 
 app.use("/api/auth", authRoutes);

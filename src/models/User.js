@@ -12,8 +12,22 @@ const userSchema = new mongoose.Schema({
     lon: Number
   },
 
-  cropHistory: [],
-  diseaseHistory: [],
+ cropHistory: [
+  {
+    input: Object,
+    result: Object,
+    createdAt: { type: Date, default: Date.now }
+  }
+],
+  diseaseHistory: [
+    {
+      image: String,
+      result: {
+        disease: String
+      },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
   yieldHistory: [],
 
 }, { timestamps: true });
