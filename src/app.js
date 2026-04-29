@@ -34,18 +34,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/crop", crop_predictRoutes);
 app.use("/api/disease", diseaseRoutes);
 app.use("/api/user", userRoutes);
-/* ================= ROUTES ================= */
-
-app.use("/api/auth", authRoutes);
-app.use("/api/crop", crop_predictRoutes);
 app.use("/api/alerts", alertRoutes);
 
-/* ================= TEST ROUTE ================= */
-
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
-
-/* ================= EXPORT ================= */
 
 export default app;
