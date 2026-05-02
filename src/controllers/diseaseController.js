@@ -1,54 +1,55 @@
-
 import axios from "axios";
 import FormData from "form-data";
-import fs from "fs";
 import User from "../models/User.js";
-import { v2 as cloudinary } from "cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
 export const detectDisease = async (req, res) => {
   let result = { disease: "Unknown Disease" };
   let imageUrl = "";
 
-  // ❌ No file
-  if (!req.file) {
-    return res.status(400).json({ error: "Image is required" });
-  }
-
-  console.log("FILE PATH:", req.file.path);
-
-  // 🔥 STEP 1: Configure Cloudinary (RUNTIME SAFE)
-  cloudinary.config({
-    cloud_name: process.env.CLOUD_NAME?.trim(),
-    api_key: process.env.CLOUD_API_KEY?.trim(),
-    api_secret: process.env.CLOUD_API_SECRET?.trim(),
-  });
-
-  console.log("ENV CHECK:");
-  console.log(process.env.CLOUD_NAME);
-  console.log(process.env.CLOUD_API_KEY);
-  console.log(process.env.CLOUD_API_SECRET);
-
-  // 🔥 STEP 2: Upload Image (ALWAYS TRY)
   try {
-    console.log("Uploading to Cloudinary...");
+    // ✅ Validate file
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
 
-    const uploaded = await cloudinary.uploader.upload(req.file.path, {
+    if (!req.file || !allowedTypes.includes(req.file.mimetype)) {
+      return res.status(400).json({
+        error: "Valid image (jpg/png) is required",
+      });
+    }
+
+    console.log("📦 File received:", req.file.originalname);
+
+    // ☁️ Upload to Cloudinary
+    const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+
+    const uploaded = await cloudinary.uploader.upload(base64, {
       folder: "disease_detection",
+      resource_type: "image",
+      transformation: [
+        { width: 512, height: 512, crop: "limit" },
+        { quality: "auto" },
+      ],
     });
+
+    if (!uploaded?.secure_url) {
+      throw new Error("Cloudinary upload failed");
+    }
 
     imageUrl = uploaded.secure_url;
 
     console.log("✅ Cloudinary URL:", imageUrl);
 
-  } catch (uploadError) {
-    console.error("❌ Cloudinary Error:", uploadError.message);
-  }
+    // 🤖 ML API
+    try {
+      if (!process.env.ML_DISEASE_API) {
+        throw new Error("ML API not configured");
+      }
 
-  // 🔥 STEP 3: Try ML (OPTIONAL / FALLBACK SAFE)
-  try {
-    if (process.env.ML_DISEASE_API) {
       const formData = new FormData();
-      formData.append("file", fs.createReadStream(req.file.path));
+      formData.append("file", req.file.buffer, {
+        filename: req.file.originalname,
+        contentType: req.file.mimetype,
+      });
 
       const mlResponse = await axios.post(
         process.env.ML_DISEASE_API,
@@ -61,52 +62,52 @@ export const detectDisease = async (req, res) => {
 
       result = {
         disease: mlResponse.data?.disease || "Unknown Disease",
+        fallback: false,
       };
 
       console.log("✅ ML RESULT:", result);
-    } else {
-      console.log("⚠️ ML API not configured");
+
+    } catch (mlError) {
+      console.error("❌ ML Error:", mlError.message);
+
+      result = {
+        disease: "Unknown Disease",
+        fallback: true,
+        message: "ML service unavailable",
+      };
     }
 
-  } catch (mlError) {
-    console.error("❌ ML ERROR:", mlError.code || mlError.message);
-
-    result = {
-      disease: "Unknown Disease (ML unavailable)",
-    };
-  }
-
-  // 🔥 STEP 4: Save to DB (ALWAYS)
-  try {
+    // 💾 Save to DB
     if (req.user?._id) {
-      await User.findByIdAndUpdate(req.user._id, {
-        $push: {
-          diseaseHistory: {
-            image: imageUrl, // may be empty if upload fails
-            result,
-            createdAt: new Date(),
+      await User.findByIdAndUpdate(
+        req.user._id,
+        {
+          $push: {
+            diseaseHistory: {
+              image: imageUrl,
+              result,
+              createdAt: new Date(),
+            },
           },
         },
-      });
+        { returnDocument: "before" }
+      );
 
       console.log("✅ Saved to DB");
     }
-  } catch (dbError) {
-    console.error("❌ DB Error:", dbError.message);
-  }
 
-  // 🧹 STEP 5: Clean local file
-  if (req.file?.path) {
-    fs.unlink(req.file.path, (err) => {
-      if (err) console.log("Delete error:", err.message);
+    // 📤 Response
+    res.status(200).json({
+      message: "Detection completed",
+      result,
+      image: imageUrl,
+    });
+
+  } catch (error) {
+    console.error("❌ Detection Error:", error.message);
+
+    res.status(500).json({
+      error: "Disease detection failed",
     });
   }
-
-  // 🔥 FINAL RESPONSE
-  res.status(200).json({
-    message: "Detection completed",
-    result,
-    image: imageUrl, // optional (useful for frontend)
-  });
 };
-
