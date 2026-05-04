@@ -52,21 +52,32 @@ export const detectDisease = async (req, res) => {
       });
 
       const mlResponse = await axios.post(
-        process.env.ML_DISEASE_API,
+        `${process.env.ML_DISEASE_API}/predict`,
         formData,
         {
           headers: formData.getHeaders(),
-          timeout: 10000,
-        }
+          timeout: 60000,
+        },
       );
 
+      const mlData = mlResponse.data;
+
+      // 🔥 HANDLE INVALID IMAGE
+      if (mlData.error) {
+        return res.status(200).json({
+          error: mlData.error,
+          confidence: mlData.confidence || 0,
+        });
+      }
+
+      // ✅ VALID RESULT
       result = {
-        disease: mlResponse.data?.disease || "Unknown Disease",
+        disease: mlData.disease || "Unknown Disease",
+        confidence: mlData.confidence || 0,
         fallback: false,
       };
 
       console.log("✅ ML RESULT:", result);
-
     } catch (mlError) {
       console.error("❌ ML Error:", mlError.message);
 
@@ -90,7 +101,7 @@ export const detectDisease = async (req, res) => {
             },
           },
         },
-        { returnDocument: "before" }
+        { returnDocument: "before" },
       );
 
       console.log("✅ Saved to DB");
@@ -102,7 +113,6 @@ export const detectDisease = async (req, res) => {
       result,
       image: imageUrl,
     });
-
   } catch (error) {
     console.error("❌ Detection Error:", error.message);
 
