@@ -27,8 +27,10 @@ export const getWeatherForAlerts = async (lat, lon) => {
     const temps = hourly.temperature_2m || [];
     const rains = hourly.precipitation || [];
 
-    const nextTemps = temps.slice(0, 3);
-    const nextRains = rains.slice(0, 3);
+    const currentHour = new Date().getHours();
+
+    const nextTemps = temps.slice(currentHour, currentHour + 3);
+    const nextRains = rains.slice(currentHour, currentHour + 3);
 
     const next3Hours = {
       maxTemp: nextTemps.length ? Math.max(...nextTemps) : 0,
@@ -42,7 +44,6 @@ export const getWeatherForAlerts = async (lat, lon) => {
     };
 
     return { next3Hours, fullDay, fallback: false };
-
   } catch (err) {
     console.error("❌ Weather API Error:", err.message);
 
