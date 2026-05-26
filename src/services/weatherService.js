@@ -2,7 +2,7 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: process.env.WEATHER_API_URL || "https://api.open-meteo.com/v1",
-  timeout: 5000,
+  timeout: 15000,
 });
 
 export const getWeatherForAlerts = async (lat, lon) => {
